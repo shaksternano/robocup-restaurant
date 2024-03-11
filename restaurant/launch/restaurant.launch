@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <node pkg="lasr_vision_yolov8" name="service" type="service" output="screen"/>
+    <node pkg="tf_module" name="tf_transforms_base" type="tf_transforms_base.py" required="true"/>
+    <node pkg="restaurant" name="main" type="main.py" output="screen"/>
+</launch>
