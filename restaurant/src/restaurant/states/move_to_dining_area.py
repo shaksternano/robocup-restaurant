@@ -18,5 +18,5 @@ class MoveToDiningArea(State):
         pose.position.y = self.dining_area_y
         pose.orientation.z = 1
         pose.orientation.w = 0
-        self.controller.move_to(pose)
+        self.controller.change_pose(pose)
         return "success"

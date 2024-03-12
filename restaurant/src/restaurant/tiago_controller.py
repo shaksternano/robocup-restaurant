@@ -2,10 +2,9 @@ import math
 from typing import cast, List, Tuple
 
 import actionlib
-import numpy as np
 import rospy
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
-from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Quaternion, Point
+from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Quaternion, Point, Twist
 from lasr_vision_msgs.srv import YoloDetection3D, YoloDetection3DRequest, YoloDetection3DResponse
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 from scipy.spatial.transform import Rotation
@@ -40,10 +39,11 @@ class TiagoController:
             "/head_controller/follow_joint_trajectory",
             FollowJointTrajectoryAction
         )
+        self.vel_publisher = rospy.Publisher("mobile_base_controller/cmd_vel", Twist, queue_size=1)
         self.yolo_service = rospy.ServiceProxy("/yolov8/detect3d", YoloDetection3D)
         self.yolo_service.wait_for_service()
 
-    def move_to(self, pose: Pose):
+    def change_pose(self, pose: Pose):
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = "map"
         goal.target_pose.header.stamp = rospy.Time.now()
@@ -71,7 +71,26 @@ class TiagoController:
         self.look_at(0, 0)
 
     def turn_to_face(self, x: float, y: float):
-        self.move_to(compute_face_quaternion(x, y))
+        self.change_pose(compute_face_quaternion(x, y))
+
+    def rotate(self, radians: float):
+        vel_msg = Twist()
+        angular_velocity = 0.8
+        clockwise = radians < 0
+        if clockwise:
+            vel_msg.angular.z = -abs(angular_velocity)
+        else:
+            vel_msg.angular.z = abs(angular_velocity)
+
+        current_angle = 0
+        t0 = rospy.Time.now().to_sec()
+
+        while current_angle < radians:
+            self.vel_publisher.publish(vel_msg)
+            t1 = rospy.Time.now().to_sec()
+            current_angle = angular_velocity * (t1 - t0)
+        rotation_seconds = abs(radians) / angular_velocity
+        rospy.sleep(rotation_seconds)
 
     def get_detections(self) -> List[YoloDetection]:
         point_cloud = cast(PointCloud2, rospy.wait_for_message("/xtion/depth_registered/points", PointCloud2))
@@ -99,8 +118,8 @@ def compute_face_quaternion(x: float, y: float) -> Pose:
     robot_x, robot_y, robot_quaternion = get_current_pose()
     dist_x = x - robot_x
     dist_y = y - robot_y
-    theta_deg: float = np.degrees(math.atan2(dist_y, dist_x))
-    x1, y1, z, w = Rotation.from_euler("z", theta_deg, degrees=True).as_quat()
+    theta_radians = math.atan2(dist_y, dist_x)
+    x1, y1, z, w = Rotation.from_euler("z", theta_radians).as_quat()
     quaternion = Quaternion(x1, y1, z, w)
     pose = Pose(position=Point(robot_x, robot_y, 0), orientation=quaternion)
     return pose
