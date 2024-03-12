@@ -3,6 +3,7 @@ from typing import cast, List, Tuple
 
 import actionlib
 import rospy
+from actionlib_msgs.msg import GoalStatus
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Quaternion, Point, Twist
 from lasr_vision_msgs.srv import YoloDetection3D, YoloDetection3DRequest, YoloDetection3DResponse
@@ -53,7 +54,7 @@ class TiagoController:
         quaternion = msg.pose.pose.orientation
         return x, y, quaternion
 
-    def change_pose(self, pose: Pose):
+    def change_pose(self, pose: Pose, prevent_crashes: bool = False):
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = "map"
         goal.target_pose.header.stamp = rospy.Time.now()
@@ -65,7 +66,20 @@ class TiagoController:
             pose.position.z,
         )
         self.move_base_client.send_goal(goal)
-        self.move_base_client.wait_for_result(rospy.Duration(60))
+        if prevent_crashes:
+            while self.move_base_client.get_state() != GoalStatus.SUCCEEDED:
+                detections = self.get_detections()
+                for detection in detections:
+                    detection_x = detection.point.x
+                    detection_y = detection.point.y
+                    current_x, current_y, _ = self.get_current_pose()
+                    distance = math.sqrt((detection_x - current_x) ** 2 + (detection_y - current_y) ** 2)
+                    if distance < 2:
+                        self.move_base_client.cancel_goal()
+                        return
+                rospy.sleep(0.5)
+        else:
+            self.move_base_client.wait_for_result(rospy.Duration(60))
 
     def look_at(self, joint1: float, joint2: float):
         goal = FollowJointTrajectoryGoal()
