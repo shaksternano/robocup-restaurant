@@ -43,6 +43,16 @@ class TiagoController:
         self.yolo_service = rospy.ServiceProxy("/yolov8/detect3d", YoloDetection3D)
         self.yolo_service.wait_for_service()
 
+    def get_current_pose(self) -> Tuple[float, float, Quaternion]:
+        msg: PoseWithCovarianceStamped = cast(
+            PoseWithCovarianceStamped,
+            rospy.wait_for_message('/amcl_pose', PoseWithCovarianceStamped)
+        )
+        x = round(msg.pose.pose.position.x, 2)
+        y = round(msg.pose.pose.position.y, 2)
+        quaternion = msg.pose.pose.orientation
+        return x, y, quaternion
+
     def change_pose(self, pose: Pose):
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = "map"
@@ -70,8 +80,18 @@ class TiagoController:
     def look_straight(self):
         self.look_at(0, 0)
 
+    def compute_face_quaternion(self, x: float, y: float) -> Pose:
+        robot_x, robot_y, robot_quaternion = self.get_current_pose()
+        dist_x = x - robot_x
+        dist_y = y - robot_y
+        theta_radians = math.atan2(dist_y, dist_x)
+        x1, y1, z, w = Rotation.from_euler("z", theta_radians).as_quat()
+        quaternion = Quaternion(x1, y1, z, w)
+        pose = Pose(position=Point(robot_x, robot_y, 0), orientation=quaternion)
+        return pose
+
     def turn_to_face(self, x: float, y: float):
-        self.change_pose(compute_face_quaternion(x, y))
+        self.change_pose(self.compute_face_quaternion(x, y))
 
     def rotate(self, radians: float):
         vel_msg = Twist()
@@ -101,25 +121,3 @@ class TiagoController:
         request.nms = 0.3
         response: YoloDetection3DResponse = self.yolo_service(request)
         return response.detected_objects
-
-
-def get_current_pose() -> Tuple[float, float, Quaternion]:
-    msg: PoseWithCovarianceStamped = cast(
-        PoseWithCovarianceStamped,
-        rospy.wait_for_message('/amcl_pose', PoseWithCovarianceStamped)
-    )
-    x = round(msg.pose.pose.position.x, 2)
-    y = round(msg.pose.pose.position.y, 2)
-    quaternion = msg.pose.pose.orientation
-    return x, y, quaternion
-
-
-def compute_face_quaternion(x: float, y: float) -> Pose:
-    robot_x, robot_y, robot_quaternion = get_current_pose()
-    dist_x = x - robot_x
-    dist_y = y - robot_y
-    theta_radians = math.atan2(dist_y, dist_x)
-    x1, y1, z, w = Rotation.from_euler("z", theta_radians).as_quat()
-    quaternion = Quaternion(x1, y1, z, w)
-    pose = Pose(position=Point(robot_x, robot_y, 0), orientation=quaternion)
-    return pose

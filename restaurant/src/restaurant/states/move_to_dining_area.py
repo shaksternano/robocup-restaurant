@@ -6,11 +6,11 @@ from tiago_controller import TiagoController
 
 class MoveToDiningArea(State):
 
-    def __init__(self, controller: TiagoController, dining_area_x: float, dining_area_y: float):
+    def __init__(self, controller: TiagoController):
         super().__init__(outcomes=["success"])
         self.controller: TiagoController = controller
-        self.dining_area_x: float = dining_area_x
-        self.dining_area_y: float = dining_area_y
+        self.dining_area_x: float = 1.4
+        self.dining_area_y: float = -4.5
 
     def execute(self, userdata: UserData) -> str:
         pose = Pose()

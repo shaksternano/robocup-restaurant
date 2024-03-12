@@ -15,7 +15,7 @@ class Tables(StateMachine):
             controller = TiagoController()
             self.add(
                 "MOVE_TO_DINING_AREA",
-                MoveToDiningArea(controller, 1.4, -4.5),
+                MoveToDiningArea(controller),
                 transitions={"success": "LOCATE_TABLE"},
             )
             self.add(
