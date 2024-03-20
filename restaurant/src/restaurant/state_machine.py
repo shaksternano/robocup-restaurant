@@ -1,11 +1,11 @@
 from smach import StateMachine
 
-from states.identify_items import IdentifyItems
+from states.confirm_order import ConfirmOrder
 from states.locate_table import LocateTable
 from states.move_to_dining_area import MoveToDiningArea
+from states.move_to_kitchen import MoveToKitchen
 from states.move_to_table import MoveToTable
 from states.take_order import TakeOrder
-from states.confirm_order import ConfirmOrder
 from tiago_controller import TiagoController
 
 
@@ -38,4 +38,9 @@ class Tables(StateMachine):
             self.add(
                 "CONFIRM_ORDER",
                 ConfirmOrder(),
+                transitions={"success": "MOVE_TO_KITCHEN"},
+            )
+            self.add(
+                "MOVE_TO_KITCHEN",
+                MoveToKitchen(controller),
             )
