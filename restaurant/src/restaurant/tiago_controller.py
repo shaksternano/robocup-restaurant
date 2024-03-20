@@ -74,7 +74,7 @@ class TiagoController:
                     detection_y = detection.point.y
                     current_x, current_y, _ = self.get_current_pose()
                     distance = math.sqrt((detection_x - current_x) ** 2 + (detection_y - current_y) ** 2)
-                    if distance < 2:
+                    if distance < 3:
                         self.move_base_client.cancel_goal()
                         return
                 rospy.sleep(0.5)
