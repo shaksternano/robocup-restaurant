@@ -2,6 +2,7 @@ from smach import StateMachine
 
 from context import Context
 from states.confirm_order import ConfirmOrder
+from states.deliver_order import DeliverOrder
 from states.locate_customer import LocateCustomer
 from states.locate_staff import LocateStaff
 from states.move_to_dining_area import MoveToDiningArea
@@ -9,6 +10,7 @@ from states.move_to_kitchen import MoveToKitchen
 from states.move_to_point import MoveToPoint
 from states.speak import Speak
 from states.take_order import TakeOrder
+from states.wait_for_order import WaitForOrder
 from tiago_controller import TiagoController
 
 
@@ -62,4 +64,14 @@ class Tables(StateMachine):
             self.add(
                 "REQUEST_ORDER",
                 Speak(text_supplier=lambda: f"Please get me {context.order}"),
+                transitions={"success": "WAIT_FOR_ORDER"},
+            )
+            self.add(
+                "WAIT_FOR_ORDER",
+                WaitForOrder(),
+                transitions={"success": "DELIVER_ORDER"},
+            )
+            self.add(
+                "DELIVER_ORDER",
+                DeliverOrder(controller, context),
             )
