@@ -1,5 +1,4 @@
 import math
-from typing import List, Optional
 
 from geometry_msgs.msg import Pose
 from smach import State, UserData
@@ -11,17 +10,10 @@ class MoveToPoint(State):
     def __init__(
         self,
         controller: TiagoController,
-        input_keys: Optional[List[str]] = None,
-        output_keys: Optional[List[str]] = None,
     ):
-        if output_keys is None:
-            output_keys = []
-        if input_keys is None:
-            input_keys = []
         super().__init__(
             outcomes=["success"],
-            input_keys=["x", "y"] + input_keys,
-            output_keys=output_keys,
+            input_keys=["x", "y"],
         )
         self.controller: TiagoController = controller
 
