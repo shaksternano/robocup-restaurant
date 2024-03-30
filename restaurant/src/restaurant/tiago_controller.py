@@ -39,16 +39,17 @@ class TiagoController:
         self.move_base_client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
         self.head_controller_client = actionlib.SimpleActionClient(
             "/head_controller/follow_joint_trajectory",
-            FollowJointTrajectoryAction
+            FollowJointTrajectoryAction,
         )
         self.vel_publisher = rospy.Publisher("mobile_base_controller/cmd_vel", Twist, queue_size=1)
         self.yolo_service = rospy.ServiceProxy("/yolov8/detect3d", YoloDetection3D)
         self.yolo_service.wait_for_service()
 
-    def get_current_pose(self) -> Tuple[float, float, Quaternion]:
+    @staticmethod
+    def get_current_pose() -> Tuple[float, float, Quaternion]:
         msg: PoseWithCovarianceStamped = cast(
             PoseWithCovarianceStamped,
-            rospy.wait_for_message('/amcl_pose', PoseWithCovarianceStamped)
+            rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
         )
         x = round(msg.pose.pose.position.x, 2)
         y = round(msg.pose.pose.position.y, 2)
@@ -75,10 +76,10 @@ class TiagoController:
                     detection_y = detection.point.y
                     current_x, current_y, _ = self.get_current_pose()
                     distance = math.sqrt((detection_x - current_x) ** 2 + (detection_y - current_y) ** 2)
-                    if distance < 3:
+                    if distance < 2:
                         self.move_base_client.cancel_goal()
                         return
-                rospy.sleep(0.5)
+                rospy.sleep(0.1)
         else:
             self.move_base_client.wait_for_result(rospy.Duration(60))
 
