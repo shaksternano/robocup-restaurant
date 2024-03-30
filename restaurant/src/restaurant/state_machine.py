@@ -1,10 +1,12 @@
 from smach import StateMachine
 
+from context import Context
 from states.confirm_order import ConfirmOrder
+from states.locate_staff import LocateStaff
 from states.locate_table import LocateTable
 from states.move_to_dining_area import MoveToDiningArea
 from states.move_to_kitchen import MoveToKitchen
-from states.move_to_table import MoveToTable
+from states.move_to_point import MoveToPoint
 from states.take_order import TakeOrder
 from tiago_controller import TiagoController
 
@@ -15,6 +17,7 @@ class Tables(StateMachine):
         super().__init__(outcomes=["success"])
         with self:
             controller = TiagoController()
+            context = Context()
             self.add(
                 "MOVE_TO_DINING_AREA",
                 MoveToDiningArea(controller),
@@ -27,20 +30,30 @@ class Tables(StateMachine):
             )
             self.add(
                 "MOVE_TO_TABLE",
-                MoveToTable(controller),
+                MoveToPoint(controller),
                 transitions={"success": "TAKE_ORDER"},
             )
             self.add(
                 "TAKE_ORDER",
-                TakeOrder(),
+                TakeOrder(context),
                 transitions={"success": "CONFIRM_ORDER"},
             )
             self.add(
                 "CONFIRM_ORDER",
-                ConfirmOrder(),
+                ConfirmOrder(context),
                 transitions={"success": "MOVE_TO_KITCHEN"},
             )
             self.add(
                 "MOVE_TO_KITCHEN",
                 MoveToKitchen(controller),
+                transitions={"success": "LOCATE_STAFF"},
+            )
+            self.add(
+                "LOCATE_STAFF",
+                LocateStaff(controller),
+                transitions={"success": "MOVE_TO_STAFF"},
+            )
+            self.add(
+                "MOVE_TO_STAFF",
+                MoveToPoint(controller),
             )

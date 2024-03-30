@@ -7,7 +7,7 @@ from tiago_controller import TiagoController
 class MoveToKitchen(State):
 
     def __init__(self, controller: TiagoController):
-        super().__init__(outcomes=["success"], input_keys=["order"], output_keys=["order"])
+        super().__init__(outcomes=["success"])
         self.controller: TiagoController = controller
         self.kitchen_area_x: float = 0
         self.kitchen_area_y: float = 0

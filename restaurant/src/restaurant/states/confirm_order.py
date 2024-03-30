@@ -1,15 +1,17 @@
-from lasr_skills import Say
+from context import Context
 from smach import State, UserData, StateMachine
+
+from lasr_skills import Say
 
 
 class ConfirmOrder(StateMachine):
 
-    def __init__(self):
-        super().__init__(outcomes=["success"], input_keys=["order"], output_keys=["order"])
+    def __init__(self, context: Context):
+        super().__init__(outcomes=["success"])
         with self:
             self.add(
                 "PROCESS_ORDER",
-                ConfirmOrder.ProcessOrder(),
+                ConfirmOrder.ProcessOrder(context),
                 transitions={"success": "SAY"},
             )
             self.add(
@@ -23,13 +25,13 @@ class ConfirmOrder(StateMachine):
             )
 
     class ProcessOrder(State):
-        def __init__(self):
+        def __init__(self, context: Context):
             super().__init__(
                 outcomes=["success"],
-                input_keys=["order"],
-                output_keys=["order", "text"],
+                output_keys=["text"],
             )
+            self.context: Context = context
 
         def execute(self, userdata: UserData) -> str:
-            userdata["text"] = "I will bring you some " + userdata["order"]
+            userdata["text"] = "I will bring you some " + self.context.order
             return "success"

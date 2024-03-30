@@ -6,11 +6,12 @@ import rospy
 from actionlib_msgs.msg import GoalStatus
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Quaternion, Point, Twist
-from lasr_vision_msgs.srv import YoloDetection3D, YoloDetection3DRequest, YoloDetection3DResponse
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 from scipy.spatial.transform import Rotation
 from sensor_msgs.msg import PointCloud2
 from trajectory_msgs.msg import JointTrajectoryPoint
+
+from lasr_vision_msgs.srv import YoloDetection3D, YoloDetection3DRequest, YoloDetection3DResponse
 
 
 class YoloDetection:
@@ -135,3 +136,14 @@ class TiagoController:
         request.nms = 0.3
         response: YoloDetection3DResponse = self.yolo_service(request)
         return response.detected_objects
+
+    def locate_person(self) -> Point:
+        turn_times = 8
+        rotation_angle = 2 * math.pi / turn_times
+        for i in range(turn_times):
+            detections = self.get_detections()
+            for detection in detections:
+                if "person" in detection.name:
+                    return detection.point
+            self.rotate(rotation_angle)
+        return Point()

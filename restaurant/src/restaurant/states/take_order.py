@@ -1,11 +1,13 @@
-from lasr_skills import Say
+from context import Context
 from smach import State, UserData, StateMachine
+
+from lasr_skills import Say
 
 
 class TakeOrder(StateMachine):
 
-    def __init__(self):
-        super().__init__(outcomes=["success"], output_keys=["order"])
+    def __init__(self, context: Context):
+        super().__init__(outcomes=["success"])
         with self:
             self.add(
                 "PREPARE_SPEECH",
@@ -23,7 +25,7 @@ class TakeOrder(StateMachine):
             )
             self.add(
                 "LISTEN_FOR_ORDER",
-                TakeOrder.ListenForOrder(),
+                TakeOrder.ListenForOrder(context),
             )
 
     class PrepareSpeech(State):
@@ -40,9 +42,10 @@ class TakeOrder(StateMachine):
 
     class ListenForOrder(State):
 
-        def __init__(self):
-            super().__init__(outcomes=["success"], output_keys=["order"])
+        def __init__(self, context: Context):
+            super().__init__(outcomes=["success"])
+            self.context: Context = context
 
         def execute(self, userdata: UserData) -> str:
-            userdata["order"] = "chips"
+            self.context.order = "chips"
             return "success"
