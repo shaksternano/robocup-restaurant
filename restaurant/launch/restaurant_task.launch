@@ -3,5 +3,10 @@
     <node pkg="lasr_vision_yolov8" name="service" type="service" output="screen"/>
     <node pkg="tf_module" name="tf_transforms_base" type="tf_transforms_base.py" required="true"/>
     <node pkg="lasr_voice" name="log_tts_events" type="log_tts_events" output="screen"/>
-    <node pkg="restaurant" name="main" type="main.py" output="screen"/>
+    <node pkg="restaurant" name="main" type="main.py" output="screen">
+        <param name="dining_area_x" value="1.5"/>
+        <param name="dining_area_y" value="-5"/>
+        <param name="kitchen_area_x" value="0"/>
+        <param name="kitchen_area_y" value="-4.5"/>
+    </node>
 </launch>

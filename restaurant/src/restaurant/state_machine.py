@@ -1,3 +1,4 @@
+import rospy
 from smach import StateMachine
 
 from context import Context
@@ -20,10 +21,10 @@ class Tables(StateMachine):
         super().__init__(outcomes=["success"])
         with self:
             controller = TiagoController()
-            context = Context()
+            context = create_context()
             self.add(
                 "MOVE_TO_DINING_AREA",
-                MoveToDiningArea(controller),
+                MoveToDiningArea(controller, context),
                 transitions={"success": "LOCATE_TABLE"},
             )
             self.add(
@@ -48,7 +49,7 @@ class Tables(StateMachine):
             )
             self.add(
                 "MOVE_TO_KITCHEN",
-                MoveToKitchen(controller),
+                MoveToKitchen(controller, context),
                 transitions={"success": "LOCATE_STAFF"},
             )
             self.add(
@@ -75,3 +76,16 @@ class Tables(StateMachine):
                 "DELIVER_ORDER",
                 DeliverOrder(controller, context),
             )
+
+
+def create_context() -> Context:
+    dining_area_x: float = rospy.get_param("~dining_area_x")
+    dining_area_y: float = rospy.get_param("~dining_area_y")
+    kitchen_area_x: float = rospy.get_param("~kitchen_area_x")
+    kitchen_area_y: float = rospy.get_param("~kitchen_area_y")
+    return Context(
+        dining_area_x,
+        dining_area_y,
+        kitchen_area_x,
+        kitchen_area_y,
+    )
