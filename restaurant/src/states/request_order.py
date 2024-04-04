@@ -16,7 +16,7 @@ class RequestOrder(StateMachine):
             )
             self.add(
                 "LISTEN_FOR_ORDER",
-                TakeOrder.ListenForOrder(context),
+                RequestOrder.ListenForOrder(context),
             )
 
     class ListenForOrder(State):
