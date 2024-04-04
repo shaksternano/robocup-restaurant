@@ -25,15 +25,15 @@ class Tables(StateMachine):
             self.add(
                 "MOVE_TO_DINING_AREA",
                 MoveToDiningArea(controller, context),
-                transitions={"success": "LOCATE_TABLE"},
+                transitions={"success": "LOCATE_CUSTOMER"},
             )
             self.add(
-                "LOCATE_TABLE",
+                "LOCATE_CUSTOMER",
                 LocateCustomer(controller, context),
-                transitions={"success": "MOVE_TO_TABLE", "end": "success"},
+                transitions={"success": "MOVE_TO_CUSTOMER", "end": "success"},
             )
             self.add(
-                "MOVE_TO_TABLE",
+                "MOVE_TO_CUSTOMER",
                 MoveToPoint(controller),
                 transitions={"success": "TAKE_ORDER"},
             )
