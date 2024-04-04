@@ -1,7 +1,8 @@
-from context import Context
 from smach import State, UserData, StateMachine
-from tiago_controller import TiagoController
+
+from context import Context
 from states.move_to_point import MoveToPoint
+from tiago_controller import TiagoController
 
 
 class DeliverOrder(StateMachine):
@@ -21,6 +22,7 @@ class DeliverOrder(StateMachine):
             self.add(
                 "RETURN_TO_CUSTOMER",
                 MoveToPoint(controller),
+                transitions={"failure": "success"},
             )
 
     class SetCustomerPosition(State):

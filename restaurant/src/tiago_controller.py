@@ -44,6 +44,7 @@ class TiagoController:
         self.vel_publisher = rospy.Publisher("mobile_base_controller/cmd_vel", Twist, queue_size=1)
         self.yolo_service = rospy.ServiceProxy("/yolov8/detect3d", YoloDetection3D)
         self.yolo_service.wait_for_service()
+        self.moving: bool = False
 
     @staticmethod
     def get_current_pose() -> Tuple[float, float, Quaternion]:
@@ -56,20 +57,21 @@ class TiagoController:
         quaternion = msg.pose.pose.orientation
         return x, y, quaternion
 
-    def change_pose(self, pose: Pose, prevent_crashes: bool = False):
+    def change_pose(self, pose: Pose, prevent_crashes: bool = False) -> int:
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = "map"
         goal.target_pose.header.stamp = rospy.Time.now()
         goal.target_pose.pose = pose
         rospy.loginfo(
-            "base is going to (%.2f, %.2f, %.2f) pose",
+            "Base is going to (%.2f, %.2f, %.2f) pose",
             pose.position.x,
             pose.position.y,
             pose.position.z,
         )
-        self.move_base_client.send_goal(goal)
+        self.moving = True
+        self.move_base_client.send_goal(goal, done_cb=lambda state, result: self.finish_moving())
         if prevent_crashes:
-            while self.move_base_client.get_state() != GoalStatus.SUCCEEDED:
+            while self.moving:
                 current_pose = self.get_current_pose()
                 distance_from_goal = math.sqrt(
                     (pose.position.x - current_pose[0]) ** 2
@@ -85,10 +87,14 @@ class TiagoController:
                         if distance < 2:
                             rospy.loginfo("Obstacle detected at (%.2f, %.2f)", detection_x, detection_y)
                             self.move_base_client.cancel_goal()
-                            return
+                            return GoalStatus.PREEMPTED
                 rospy.sleep(0.1)
         else:
             self.move_base_client.wait_for_result(rospy.Duration(60))
+        return self.move_base_client.get_state()
+
+    def finish_moving(self):
+        self.moving = False
 
     def look_at(self, joint1: float, joint2: float):
         goal = FollowJointTrajectoryGoal()

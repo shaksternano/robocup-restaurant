@@ -35,7 +35,7 @@ class Tables(StateMachine):
             self.add(
                 "MOVE_TO_CUSTOMER",
                 MoveToPoint(controller),
-                transitions={"success": "TAKE_ORDER"},
+                transitions={"success": "TAKE_ORDER", "failure": "LOCATE_CUSTOMER"},
             )
             self.add(
                 "TAKE_ORDER",
@@ -60,7 +60,7 @@ class Tables(StateMachine):
             self.add(
                 "MOVE_TO_STAFF",
                 MoveToPoint(controller),
-                transitions={"success": "REQUEST_ORDER"},
+                transitions={"success": "REQUEST_ORDER", "failure": "LOCATE_STAFF"},
             )
             self.add(
                 "REQUEST_ORDER",

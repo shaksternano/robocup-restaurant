@@ -1,7 +1,9 @@
 import math
 
+from actionlib_msgs.msg import GoalStatus
 from geometry_msgs.msg import Pose
 from smach import State, UserData
+
 from tiago_controller import TiagoController
 
 
@@ -12,20 +14,23 @@ class MoveToPoint(State):
         controller: TiagoController,
     ):
         super().__init__(
-            outcomes=["success"],
+            outcomes=["success", "failure"],
             input_keys=["x", "y"],
         )
         self.controller: TiagoController = controller
 
     def execute(self, userdata: UserData) -> str:
-        table_x: float = userdata["x"]
-        table_y: float = userdata["y"]
+        x: float = userdata["x"]
+        y: float = userdata["y"]
         current_x, current_y, _ = self.controller.get_current_pose()
-        angle = math.atan2(table_y - current_y, table_x - current_x)
+        angle = math.atan2(y - current_y, x - current_x)
         pose = Pose()
-        pose.position.x = table_x
-        pose.position.y = table_y
+        pose.position.x = x
+        pose.position.y = y
         pose.orientation.z = math.sin(angle / 2)
         pose.orientation.w = math.cos(angle / 2)
-        self.controller.change_pose(pose, prevent_crashes=True)
-        return "success"
+        result_state = self.controller.change_pose(pose, prevent_crashes=True)
+        if result_state == GoalStatus.ABORTED:
+            return "failure"
+        else:
+            return "success"
