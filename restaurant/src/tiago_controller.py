@@ -154,12 +154,13 @@ class TiagoController:
     def locate_person(self) -> Point:
         turn_times = 8
         rotation_angle = 2 * math.pi / turn_times
+        current_x, current_y, _ = self.get_current_pose()
         for i in range(turn_times):
             detections = self.get_detections()
             person_detections = [detection for detection in detections if "person" in detection.name]
             closest_person = min(
                 person_detections,
-                key=lambda detection: detection.point.x ** 2 + detection.point.y ** 2,
+                key=lambda person: (person.point.x - current_x) ** 2 + (person.point.y - current_y) ** 2,
                 default=None,
             )
             if closest_person is not None:
