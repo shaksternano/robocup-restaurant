@@ -1,5 +1,6 @@
-from context import Context
 from smach import State, UserData
+
+from context import Context
 from tiago_controller import TiagoController
 
 
@@ -12,7 +13,6 @@ class LocateCustomer(State):
         )
         self.controller: TiagoController = controller
         self.context: Context = context
-        self.table_index: int = 0
 
     def execute(self, userdata: UserData) -> str:
         customer_position = self.controller.locate_person()

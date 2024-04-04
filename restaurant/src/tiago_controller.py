@@ -145,7 +145,7 @@ class TiagoController:
         point_cloud = cast(PointCloud2, rospy.wait_for_message("/xtion/depth_registered/points", PointCloud2))
         request = YoloDetection3DRequest()
         request.pcl = point_cloud
-        request.dataset = "yolov8n-seg.pt"
+        request.dataset = "yolov8s-seg.pt"
         request.confidence = 0.5
         request.nms = 0.3
         response: YoloDetection3DResponse = self.yolo_service(request)
@@ -156,8 +156,13 @@ class TiagoController:
         rotation_angle = 2 * math.pi / turn_times
         for i in range(turn_times):
             detections = self.get_detections()
-            for detection in detections:
-                if "person" in detection.name:
-                    return detection.point
+            person_detections = [detection for detection in detections if "person" in detection.name]
+            closest_person = min(
+                person_detections,
+                key=lambda detection: detection.point.x ** 2 + detection.point.y ** 2,
+                default=None,
+            )
+            if closest_person is not None:
+                return closest_person.point
             self.rotate(rotation_angle)
         return Point()
