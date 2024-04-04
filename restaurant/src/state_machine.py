@@ -31,7 +31,7 @@ class Tables(StateMachine):
             self.add(
                 "LOCATE_CUSTOMER",
                 LocateCustomer(controller, context),
-                transitions={"success": "MOVE_TO_CUSTOMER", "end": "WAIT_FOR_CUSTOMER"},
+                transitions={"success": "MOVE_TO_CUSTOMER", "failure": "WAIT_FOR_CUSTOMER"},
             )
             self.add(
                 "WAIT_FOR_CUSTOMER",
