@@ -11,6 +11,7 @@ from states.move_to_kitchen import MoveToKitchen
 from states.move_to_point import MoveToPoint
 from states.speak import Speak
 from states.take_order import TakeOrder
+from states.wait import Wait
 from states.wait_for_order import WaitForOrder
 from tiago_controller import TiagoController
 
@@ -30,7 +31,12 @@ class Tables(StateMachine):
             self.add(
                 "LOCATE_CUSTOMER",
                 LocateCustomer(controller, context),
-                transitions={"success": "MOVE_TO_CUSTOMER", "end": "success"},
+                transitions={"success": "MOVE_TO_CUSTOMER", "end": "WAIT_FOR_CUSTOMER"},
+            )
+            self.add(
+                "WAIT_FOR_CUSTOMER",
+                Wait(),
+                transitions={"success": "LOCATE_CUSTOMER"},
             )
             self.add(
                 "MOVE_TO_CUSTOMER",
