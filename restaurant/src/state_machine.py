@@ -85,11 +85,13 @@ class Tables(StateMachine):
 
 
 def create_context() -> Context:
+    mic_input: bool = rospy.get_param("~mic_input")
     dining_area_x: float = rospy.get_param("~dining_area_x")
     dining_area_y: float = rospy.get_param("~dining_area_y")
     kitchen_area_x: float = rospy.get_param("~kitchen_area_x")
     kitchen_area_y: float = rospy.get_param("~kitchen_area_y")
     return Context(
+        mic_input,
         dining_area_x,
         dining_area_y,
         kitchen_area_x,
