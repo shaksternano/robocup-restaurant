@@ -3,6 +3,9 @@
     <node pkg="lasr_vision_yolov8" name="service" type="service" output="screen"/>
     <node pkg="tf_module" name="tf_transforms_base" type="tf_transforms_base.py" required="true"/>
     <node pkg="lasr_voice" name="log_tts_events" type="log_tts_events" output="screen"/>
+    <include file="$(find lasr_rasa)/launch/rasa.launch">
+        <arg name="model" value="$(find lasr_rasa)/assistants/receptionist/models" />
+    </include>
     <node pkg="restaurant" name="main" type="main.py" output="screen">
         <param name="dining_area_x" value="1.5"/>
         <param name="dining_area_y" value="-5"/>
