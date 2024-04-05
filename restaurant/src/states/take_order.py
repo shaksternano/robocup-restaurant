@@ -76,9 +76,13 @@ class TakeOrder(StateMachine):
             # noinspection PyBroadException
             try:
                 json_object: Dict[str, Any] = json.loads(json_string)
-                entities: Dict[str, List[Dict[str, Any]]] = json_object["entities"]
-                name_object = entities["name"][0]
-                self.context.order = name_object["value"]
-                return "success"
+                intent: Dict[str, Any] = json_object["intent"]
+                intent_name: str = intent["name"]
+                if intent_name == "fav_drink":
+                    entities: Dict[str, List[Dict[str, Any]]] = json_object["entities"]
+                    name_object = entities["name"][0]
+                    self.context.order = name_object["value"]
+                    return "success"
             except Exception:
-                return "failure"
+                pass
+            return "failure"
