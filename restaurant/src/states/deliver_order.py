@@ -7,11 +7,7 @@ from tiago_controller import TiagoController
 
 class DeliverOrder(StateMachine):
 
-    def __init__(
-        self,
-        controller: TiagoController,
-        context: Context,
-    ):
+    def __init__(self, controller: TiagoController, context: Context):
         super().__init__(outcomes=["success"])
         with self:
             self.add(

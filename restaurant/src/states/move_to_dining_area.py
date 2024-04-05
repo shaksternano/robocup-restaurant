@@ -1,6 +1,7 @@
-from context import Context
 from geometry_msgs.msg import Pose
 from smach import State, UserData
+
+from context import Context
 from tiago_controller import TiagoController
 
 

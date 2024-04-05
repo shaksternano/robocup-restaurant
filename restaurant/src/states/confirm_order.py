@@ -1,6 +1,6 @@
-from context import Context
 from smach import State, UserData, StateMachine
 
+from context import Context
 from lasr_skills import Say
 
 

@@ -1,12 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
+    <arg name="mic_input" default="false"/>
+    <arg name="mic_config" default=""/>
+
     <node pkg="lasr_vision_yolov8" name="service" type="service" output="screen"/>
     <node pkg="tf_module" name="tf_transforms_base" type="tf_transforms_base.py" required="true"/>
     <node pkg="lasr_voice" name="log_tts_events" type="log_tts_events" output="screen"/>
+    <node pkg="lasr_speech_recognition_whisper" type="transcribe_microphone_server" name="transcribe_speech"
+          output="screen"
+          args="$(arg mic_config)"
+    />
     <include file="$(find lasr_rasa)/launch/rasa.launch">
-        <arg name="model" value="$(find lasr_rasa)/assistants/receptionist/models" />
+        <arg name="model" value="$(find lasr_rasa)/assistants/receptionist/models"/>
     </include>
+
     <node pkg="restaurant" name="main" type="main.py" output="screen">
+        <param name="mic_input" value="$(arg mic_input)"/>
         <param name="dining_area_x" value="1.5"/>
         <param name="dining_area_y" value="-5"/>
         <param name="kitchen_area_x" value="0"/>

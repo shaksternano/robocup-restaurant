@@ -6,6 +6,7 @@ from smach import State, UserData, StateMachine
 
 from context import Context
 from lasr_rasa.srv import Rasa, RasaRequest
+from lasr_skills import Listen
 from states.speak import Speak
 
 
@@ -19,11 +20,23 @@ class TakeOrder(StateMachine):
                 Speak("What would you like to order?"),
                 transitions={"success": "LISTEN_FOR_ORDER"}
             )
-            self.add(
-                "LISTEN_FOR_ORDER",
-                TakeOrder.ListenForOrder(),
-                transitions={"success": "PARSE_ORDER"},
-            )
+            if context.mic_input:
+                self.add(
+                    "LISTEN_FOR_ORDER",
+                    Listen(),
+                    transitions={
+                        "succeeded": "PARSE_ORDER",
+                        "aborted": "REPEAT_ORDER",
+                        "preempted": "REPEAT_ORDER",
+                    },
+                    remapping={"sequence": "order"},
+                )
+            else:
+                self.add(
+                    "LISTEN_FOR_ORDER",
+                    TakeOrder.ListenForOrder(),
+                    transitions={"success": "PARSE_ORDER"},
+                )
             self.add(
                 "PARSE_ORDER",
                 TakeOrder.ParseOrder(context),

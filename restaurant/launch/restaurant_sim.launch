@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <launch>
     <include file="$(find restaurant)/launch/tiago_navigation.launch">
-        <arg name="world" value="restaurant" />
+        <arg name="world" value="restaurant"/>
         <arg name="extra_gz_resource_path" value="$(find restaurant)"/>
-        <arg name="map" value="$(env HOME)/.pal/tiago_maps/configurations/small_office" />
-        <arg name="public_sim" value="true" />
+        <arg name="map" value="$(env HOME)/.pal/tiago_maps/configurations/small_office"/>
+        <arg name="public_sim" value="true"/>
     </include>
 </launch>

@@ -9,10 +9,7 @@ from tiago_controller import TiagoController
 
 class MoveToPoint(State):
 
-    def __init__(
-        self,
-        controller: TiagoController,
-    ):
+    def __init__(self, controller: TiagoController):
         super().__init__(
             outcomes=["success", "failure"],
             input_keys=["x", "y"],
