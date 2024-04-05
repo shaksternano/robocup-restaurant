@@ -2,7 +2,6 @@ import rospy
 from smach import StateMachine
 
 from context import Context
-from states.confirm_order import ConfirmOrder
 from states.deliver_order import DeliverOrder
 from states.locate_customer import LocateCustomer
 from states.locate_staff import LocateStaff
@@ -50,7 +49,7 @@ class Tables(StateMachine):
             )
             self.add(
                 "CONFIRM_ORDER",
-                ConfirmOrder(context),
+                Speak(text_supplier=lambda: f"I will bring you {context.order}"),
                 transitions={"success": "MOVE_TO_KITCHEN"},
             )
             self.add(
