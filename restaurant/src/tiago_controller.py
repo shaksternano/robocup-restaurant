@@ -72,17 +72,16 @@ class TiagoController:
         self.move_base_client.send_goal(goal, done_cb=lambda state, result: self.finish_moving())
         if prevent_crashes:
             while self.moving:
-                current_pose = self.get_current_pose()
+                current_x, current_y, _ = self.get_current_pose()
                 distance_from_goal = math.sqrt(
-                    (pose.position.x - current_pose[0]) ** 2
-                    + (pose.position.y - current_pose[1]) ** 2
+                    (pose.position.x - current_x) ** 2
+                    + (pose.position.y - current_y) ** 2
                 )
                 if distance_from_goal < 3:
                     detections = self.get_detections()
                     for detection in detections:
                         detection_x = detection.point.x
                         detection_y = detection.point.y
-                        current_x, current_y, _ = self.get_current_pose()
                         distance = math.sqrt((detection_x - current_x) ** 2 + (detection_y - current_y) ** 2)
                         if distance < 2:
                             rospy.loginfo("Obstacle detected at (%.2f, %.2f)", detection_x, detection_y)
