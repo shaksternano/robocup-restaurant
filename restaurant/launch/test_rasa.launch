@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <include file="$(find lasr_rasa)/launch/rasa.launch">
+        <arg name="model" value="$(find lasr_rasa)/assistants/receptionist/models"/>
+    </include>
+    <node pkg="restaurant" name="test_rasa" type="test_rasa.py" output="screen"/>
+</launch>
