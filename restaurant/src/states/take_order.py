@@ -1,24 +1,20 @@
-import json
-from typing import Dict, Any, List
-
-import rospy
 from smach import State, UserData, StateMachine
 
 from context import Context
-from lasr_rasa.srv import Rasa, RasaRequest
 from lasr_skills import Listen
 from states.speak import Speak
+from tiago_controller import TiagoController
 
 
 class TakeOrder(StateMachine):
 
-    def __init__(self, context: Context):
+    def __init__(self, controller: TiagoController, context: Context):
         super().__init__(outcomes=["success"])
         with self:
             self.add(
                 "ASK_FOR_ORDER",
                 Speak("What would you like to order?"),
-                transitions={"success": "LISTEN_FOR_ORDER"}
+                transitions={"success": "LISTEN_FOR_ORDER"},
             )
             if context.mic_input:
                 self.add(
@@ -39,7 +35,7 @@ class TakeOrder(StateMachine):
                 )
             self.add(
                 "PARSE_ORDER",
-                TakeOrder.ParseOrder(context),
+                TakeOrder.ParseOrder(controller, context),
                 transitions={
                     "success": "success",
                     "failure": "REPEAT_ORDER",
@@ -62,27 +58,16 @@ class TakeOrder(StateMachine):
 
     class ParseOrder(State):
 
-        def __init__(self, context: Context):
+        def __init__(self, controller: TiagoController, context: Context):
             super().__init__(outcomes=["success", "failure"], input_keys=["order"])
-            self.rasa_service = rospy.ServiceProxy("/lasr_rasa/parse", Rasa)
+            self.controller: TiagoController = controller
             self.context: Context = context
 
         def execute(self, userdata: UserData) -> str:
             order: str = userdata["order"]
-            request = RasaRequest(order)
-            self.rasa_service.wait_for_service()
-            response = self.rasa_service(request)
-            json_string: str = response.json_response
-            # noinspection PyBroadException
-            try:
-                json_object: Dict[str, Any] = json.loads(json_string)
-                intent: Dict[str, Any] = json_object["intent"]
-                intent_name: str = intent["name"]
-                if intent_name == "fav_drink":
-                    entities: Dict[str, List[Dict[str, Any]]] = json_object["entities"]
-                    name_object = entities["name"][0]
-                    self.context.order = name_object["value"]
-                    return "success"
-            except Exception:
-                pass
-            return "failure"
+            order_item = self.controller.get_order_item(order)
+            if order_item:
+                self.context.order = order_item
+                return "success"
+            else:
+                return "failure"

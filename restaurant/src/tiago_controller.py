@@ -1,5 +1,6 @@
+import json
 import math
-from typing import cast, List, Tuple
+from typing import cast, List, Tuple, Dict, Any
 
 import actionlib
 import rospy
@@ -11,6 +12,7 @@ from scipy.spatial.transform import Rotation
 from sensor_msgs.msg import PointCloud2
 from trajectory_msgs.msg import JointTrajectoryPoint
 
+from lasr_rasa.srv import Rasa, RasaRequest
 from lasr_vision_msgs.srv import YoloDetection3D, YoloDetection3DRequest, YoloDetection3DResponse
 
 
@@ -43,6 +45,7 @@ class TiagoController:
         )
         self.vel_publisher = rospy.Publisher("mobile_base_controller/cmd_vel", Twist, queue_size=1)
         self.yolo_service = rospy.ServiceProxy("/yolov8/detect3d", YoloDetection3D)
+        self.rasa_service = rospy.ServiceProxy("/lasr_rasa/parse", Rasa)
         self.moving: bool = False
 
     @staticmethod
@@ -68,6 +71,7 @@ class TiagoController:
             pose.position.z,
         )
         self.moving = True
+        self.move_base_client.wait_for_server()
         self.move_base_client.send_goal(goal, done_cb=lambda state, result: self.finish_moving())
         if prevent_crashes:
             while self.moving:
@@ -101,6 +105,7 @@ class TiagoController:
         point.positions = [joint1, joint2]
         point.time_from_start = rospy.Duration(1)
         goal.trajectory.points.append(point)
+        self.head_controller_client.wait_for_server()
         self.head_controller_client.send_goal(goal)
         self.head_controller_client.wait_for_result(rospy.Duration(10))
 
@@ -166,3 +171,21 @@ class TiagoController:
                 return closest_person.point
             self.rotate(rotation_angle)
         return Point()
+
+    def get_order_item(self, order_sentence: str) -> str:
+        request = RasaRequest(order_sentence)
+        self.rasa_service.wait_for_service()
+        response = self.rasa_service(request)
+        json_string: str = response.json_response
+        # noinspection PyBroadException
+        try:
+            json_object: Dict[str, Any] = json.loads(json_string)
+            intent: Dict[str, Any] = json_object["intent"]
+            intent_name: str = intent["name"]
+            if intent_name == "fav_drink":
+                entities: Dict[str, List[Dict[str, Any]]] = json_object["entities"]
+                name_object = entities["name"][0]
+                return name_object["value"]
+        except Exception:
+            pass
+        return ""
