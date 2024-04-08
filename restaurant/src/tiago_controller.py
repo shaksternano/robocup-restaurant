@@ -180,12 +180,9 @@ class TiagoController:
         # noinspection PyBroadException
         try:
             json_object: Dict[str, Any] = json.loads(json_string)
-            intent: Dict[str, Any] = json_object["intent"]
-            intent_name: str = intent["name"]
-            if intent_name == "fav_drink":
-                entities: Dict[str, List[Dict[str, Any]]] = json_object["entities"]
-                name_object = entities["name"][0]
-                return name_object["value"]
+            entities: Dict[str, List[Dict[str, Any]]] = json_object["entities"]
+            entity = next(iter(entities.values()))[0]
+            return entity["value"]
         except Exception:
             pass
         return ""
