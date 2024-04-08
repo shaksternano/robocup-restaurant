@@ -10,6 +10,6 @@ from tiago_controller import TiagoController
 if __name__ == "__main__":
     degrees = float(sys.argv[1])
     rospy.init_node("test_rotate", anonymous=True)
-    controller = TiagoController(wait_for_services=False)
+    controller = TiagoController()
     radians = math.radians(degrees)
     controller.rotate(radians)

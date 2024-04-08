@@ -65,12 +65,12 @@ class TakeOrder(StateMachine):
         def __init__(self, context: Context):
             super().__init__(outcomes=["success", "failure"], input_keys=["order"])
             self.rasa_service = rospy.ServiceProxy("/lasr_rasa/parse", Rasa)
-            self.rasa_service.wait_for_service()
             self.context: Context = context
 
         def execute(self, userdata: UserData) -> str:
             order: str = userdata["order"]
             request = RasaRequest(order)
+            self.rasa_service.wait_for_service()
             response = self.rasa_service(request)
             json_string: str = response.json_response
             # noinspection PyBroadException
