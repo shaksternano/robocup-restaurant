@@ -1,3 +1,6 @@
+import random
+from typing import List
+
 from smach import State, UserData, StateMachine
 
 from context import Context
@@ -51,9 +54,20 @@ class TakeOrder(StateMachine):
 
         def __init__(self):
             super().__init__(outcomes=["success"], output_keys=["order"])
+            self.example_orders: List[str] = [
+                "I would like chips",
+                "I would like a burger",
+                "I would like a cola",
+                "I want chips",
+                "I want a burger",
+                "I want a cola",
+                "Give me chips",
+                "Give me a burger",
+                "Give me a cola",
+            ]
 
         def execute(self, userdata: UserData) -> str:
-            userdata["order"] = "I would like chips"
+            userdata["order"] = random.choice(self.example_orders)
             return "success"
 
     class ParseOrder(State):
