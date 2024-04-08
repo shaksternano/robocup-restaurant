@@ -44,7 +44,7 @@ class Tables(StateMachine):
             )
             self.add(
                 "TAKE_ORDER",
-                TakeOrder(context),
+                TakeOrder(controller, context),
                 transitions={"success": "CONFIRM_ORDER"},
             )
             self.add(
