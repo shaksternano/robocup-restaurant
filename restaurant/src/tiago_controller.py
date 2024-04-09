@@ -37,7 +37,7 @@ class YoloDetection:
 
 class TiagoController:
 
-    def __init__(self):
+    def __init__(self, await_ready: bool = False):
         self.move_base_client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
         self.head_controller_client = actionlib.SimpleActionClient(
             "/head_controller/follow_joint_trajectory",
@@ -47,6 +47,14 @@ class TiagoController:
         self.yolo_service = rospy.ServiceProxy("/yolov8/detect3d", YoloDetection3D)
         self.rasa_service = rospy.ServiceProxy("/lasr_rasa/parse", Rasa)
         self.moving: bool = False
+
+        if await_ready:
+            rospy.loginfo("Waiting for action servers and services to start")
+            self.move_base_client.wait_for_server()
+            self.head_controller_client.wait_for_server()
+            self.yolo_service.wait_for_service()
+            self.rasa_service.wait_for_service()
+            rospy.loginfo("Action servers and services are ready")
 
     @staticmethod
     def get_current_pose() -> Tuple[float, float, Quaternion]:

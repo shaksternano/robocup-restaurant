@@ -20,7 +20,7 @@ class Tables(StateMachine):
     def __init__(self):
         super().__init__(outcomes=["success"])
         with self:
-            controller = TiagoController()
+            controller = TiagoController(await_ready=True)
             context = create_context()
             self.add(
                 "MOVE_TO_DINING_AREA",
