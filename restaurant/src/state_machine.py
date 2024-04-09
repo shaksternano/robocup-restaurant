@@ -34,7 +34,7 @@ class Tables(StateMachine):
             )
             self.add(
                 "WAIT_FOR_CUSTOMER",
-                Wait(),
+                Wait(10),
                 transitions={"success": "LOCATE_CUSTOMER"},
             )
             self.add(
