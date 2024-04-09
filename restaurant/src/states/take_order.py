@@ -1,6 +1,7 @@
 import random
 from typing import List
 
+import rospy
 from smach import State, UserData, StateMachine
 
 from context import Context
@@ -67,6 +68,8 @@ class TakeOrder(StateMachine):
             ]
 
         def execute(self, userdata: UserData) -> str:
+            # Simulate listening for an order
+            rospy.sleep(3)
             userdata["order"] = random.choice(self.example_orders)
             return "success"
 
